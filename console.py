@@ -48,74 +48,55 @@ class HBNBCommand(cmd.Cmd):
         """
         pass
 
-    def do_create(self, line):
+    def do_create(self, arg):
         """
         Creates a new instance of BaseModel, saves it (to the JSON file)
         and prints the id. EX: $ craete BaseModel
         """
 
-        args = str(line)
+        def isfloat(val):
+            try:
+                float(val)
+                return True
+            except ValueError:
+                return False
 
-        tokens = args.split(" ")
+        words = arg.split(" ")
 
-        if len(tokens) == 0:
-            print("** class name missing **")
-            return
-        if len(tokens) == 1 and tokens[0] in self.cls_dict.keys():
-            new_instance = self.cls_dict[tokens[0]]()
-            new_instance.save()
-            print(new_instance.id)
-        elif len(tokens) > 1 and tokens[0] in self.cls_dict.keys():
-            new_instance = self.cls_dict[tokens[0]]()
-            for param in tokens:
-                if param != tokens[0]:
-                    words = param.split("=")
-                    changed_word = ''
-                    _str = 0
-                    count = 0
-                    _break = False
-                    more_test = False
-                    for char in words[1]:
-                        count += 1
-                        if count == 1 and char == '"':
-                            _str = 1
-                        if count == 1 and char != '"':
-                            more_test = True
-                            try:
-                                int(char)
-                            except ValueError:
-                                _break = True
-                                break
-                        if more_test is True:
-                            try:
-                                if char == ".":
-                                    pass
-                                else:
-                                    int(char)
-                            except ValueError:
-                                _break = True
-                                break
-                        if char == '"':
-                            changed_word += ""
-                        elif char == '_':
-                            changed_word += " "
-                        else:
-                            changed_word += char
-                    if _break is False and _str == 0:
-                        numbers = changed_word.split(".")
-                        if len(numbers) == 1:
-                            setattr(new_instance, words[0], int(changed_word))
-                        elif len(numbers) == 2:
-                            setattr(new_instance, words[0],
-                                    float(changed_word))
-                        else:
-                            pass
-                    elif _break is False and _str == 1:
-                        setattr(new_instance, words[0], changed_word)
+        if len(words) == 0:
+            print('** class name missing **')
+        elif words[0] not in self.cls_dict.keys():
+            print("** class doesn't exist **")
+        elif len(words) > 1:
+            new_instance = self.cls_dict[words[0]]()
+            for word in words:
+                if word != words[0]:
+                    param = word.split("=")
+                    new_value = ""
+                    _str = False
+                    if len(param) > 1:
+                        if param[1].startswith('"') and param[1].endswith('"'):
+                            _str = True
+                        for letter in param[1]:
+                            if letter == '"':
+                                new_value += ''
+                            elif letter == '_':
+                                new_value += ' '
+                            else:
+                                new_value += letter
+                        if _str is True:
+                            setattr(new_instance, param[0], str(new_value))
+                        if _str is False:
+                            if new_value.isdigit():
+                                setattr(new_instance, param[0], int(new_value))
+                            elif isfloat(new_value) is True:
+                                setattr(new_instance, param[0], float(new_value))
             new_instance.save()
             print(new_instance.id)
         else:
-            print("** class doesn't exist **")
+            new_instance = self.cls_dict[words[0]]()
+            new_instance.save()
+            print(new_instance.id)
 
     def do_show(self, line):
         """
@@ -178,6 +159,7 @@ class HBNBCommand(cmd.Cmd):
         Prints all string representation of all instances based or not
         on the class name. Ex: $ all BaseModel or $ all.
         """
+        storage.reload()
         req_dict = []
         objs_dict = storage.all()
 
@@ -191,7 +173,9 @@ class HBNBCommand(cmd.Cmd):
                 print("** class doesn't exist **")
                 return
             for key in objs_dict:
-                req_dict.append(str(objs_dict[key]))
+                cls = key.split('.')
+                if cls[0] == line:
+                    req_dict.append(str(objs_dict[key]))
             print(req_dict)
 
     def do_update(self, line):
@@ -231,7 +215,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         if key in objs_dict and len(args) >= 4:
-            if args[2] == 'id' or args[2] == 'created_at' or args[2] == 'updated_at':
+            if (args[2] == 'id') or args[2] == 'created_at' or args[2] == 'updated_at':
                 print(f"Can't update {args[2]}")
                 return
             instance = objs_dict[key]

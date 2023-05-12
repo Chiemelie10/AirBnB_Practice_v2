@@ -4,19 +4,10 @@
 import uuid
 from datetime import datetime
 import models
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, DATETIME
-
-
-Base = declarative_base()
 
 
 class BaseModel():
     """Defines all common attributes/methods for other classes"""
-
-    id = Column(String(60), unique=True, nullable=False, primary_key=True)
-    created_at = Column(DATETIME, nullable=False, default=datetime.utcnow())
-    updated_at = Column(DATETIME, nullable=False, default=datetime.utcnow())
 
     def __init__(self, *args, **kwargs):
         """Initializes the public instance attributes of class BaseModel"""
@@ -25,22 +16,17 @@ class BaseModel():
             for key, value in kwargs.items():
                 if key != '__class__':
                     setattr(self, key, value)
-            if hasattr(kwargs, 'created_at') and type(self.created_at) is str:
+            if hasattr(self, 'created_at') and type(self.created_at) is str:
                 self.created_at = datetime.strptime(self.created_at,
                                                     '%Y-%m-%dT%H:%M:%S.%f')
-            if 'updated_at' in dir(kwargs) and type(self.updated_at) is str:
+            if 'updated_at' in dir(self) and type(self.updated_at) is str:
                 self.updated_at = datetime.strptime(self.updated_at,
                                                     '%Y-%m-%dT%H:%M:%S.%f')
-            if not hasattr(kwargs, 'id'):
-                setattr(self, 'id', str(uuid.uuid4()))
-            if not hasattr(kwargs, 'created_at'):
-                setattr(self, 'created_at', datetime.now())
-            if not hasattr(kwargs, 'updated_at'):
-                setattr(self, 'updated_at', datetime.now())
         else:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
+            models.storage.new(self)
             models.storage.save()
 
     def __str__(self):
@@ -59,7 +45,6 @@ class BaseModel():
         """
 
         self.updated_at = datetime.now()
-        models.storage.new(self)
         models.storage.save()
 
     def to_dict(self):
@@ -72,16 +57,5 @@ class BaseModel():
         instance_dict['__class__'] = self.__class__.__name__
         instance_dict['created_at'] = datetime.isoformat(self.created_at)
         instance_dict['updated_at'] = datetime.isoformat(self.updated_at)
-        if '_sa_instance_state' in instance_dict:
-            del instance_dict['_sa_instance_state']
 
         return instance_dict
-
-    def delete(self):
-        """
-        Deletes the current instance from the storage(models.storage)
-        by calling the method.
-        """
-
-        models.storage.delete(self)
-        models.storage.save()

@@ -30,23 +30,14 @@ class FileStorage():
     __file_path = 'file.json'
     __objects = {}
 
-    def all(self, cls=None):
-        """
-        Returns the dictionary __objects if cls is None, else it
-        returns only the dictionary __objects of the given cls
-        """
-
-        if cls is not None:
-            dict_of_cls = {}
-            dict_of_cls = {k: v for k, v in self.__objects.items()
-                           if isinstance(v, cls)}
-            return dict_of_cls
+    def all(self):
+        """ Returns the dictionary __objects."""
 
         return self.__objects
 
     def new(self, obj):
         """Sets in __objects the obj with key <class name>.id"""
-
+        
         if obj is not None:
             key = obj.__class__.__name__ + "." + obj.id
             self.__objects[key] = obj
@@ -76,22 +67,3 @@ class FileStorage():
                 self.__objects[key] = classes[pd[key]["__class__"]](**pd[key])
         except FileNotFoundError:
             pass
-
-    def delete(self, obj=None):
-        """
-        Deletes obj from __objects if it is inside. It does nothing if
-        obj is equal to None.
-        """
-        """
-        if obj is not None:
-            obj_not_to_del = {}
-            for k, v in self.__objects.items():
-                if v != obj:
-                    obj_not_to_del[k] = v
-            self.__objects = obj_not_to_del
-        """
-
-        if obj is not None:
-            key_to_del = obj.to_dict()['__class__'] + "." + obj.id
-            if key_to_del in self.__objects.keys():
-                del self.__objects[key_to_del]
