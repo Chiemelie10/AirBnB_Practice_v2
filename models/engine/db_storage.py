@@ -41,11 +41,11 @@ class DBStorage():
         objects depending of the class name (argument cls)
         """
         classes = {
-            #'User': User,
+            'User': User,
             'State': State,
             'City': City,
             #'Amenity': Amenity,
-            #'Place': Place,
+            'Place': Place,
             #'Review': Review
         }
 
