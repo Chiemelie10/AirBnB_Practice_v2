@@ -3,6 +3,7 @@
 
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, Integer, Float, ForeignKey
+from sqlalchemy.orm import relationship
 import os
 
 
@@ -22,6 +23,8 @@ class Place(BaseModel, Base):
         price_by_night = Column(Integer, nullable=False, default=0)
         latitude = Column(Float, nullable=True)
         longitude = Column(Float, nullable=True)
+        reviews = relationship('Review', backref='place',
+                               cascade='all, delete, delete-orphan')
     else:
         city_id = ""
         user_id = ""
@@ -34,6 +37,23 @@ class Place(BaseModel, Base):
         latitude = 0.0
         longitude = 0.0
         amenity_ids = []
+
+        @property
+        def reviews(self):
+            """
+            Returns the list of Review instances with place_id equals
+            to the current place.id.
+            """
+            from models import storage
+            from models.review import Review
+
+            review_of_place = []
+            review_dict = storage.all(Review)
+            for obj in review_dict.values():
+                if obj.place_id == self.id:
+                    review_of_place.append(obj)
+            return review_of_place
+
 
     def __init__(self, *args, **kwargs):
         """Initializes the attributes of the class"""

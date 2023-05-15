@@ -46,7 +46,7 @@ class DBStorage():
             'City': City,
             #'Amenity': Amenity,
             'Place': Place,
-            #'Review': Review
+            'Review': Review
         }
 
         objs_dict = {}
