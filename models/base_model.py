@@ -30,6 +30,12 @@ class BaseModel():
             if 'updated_at' in dir(self) and type(self.updated_at) is str:
                 self.updated_at = datetime.strptime(self.updated_at,
                                                     '%Y-%m-%dT%H:%M:%S.%f')
+            if not hasattr(kwargs, 'id'):
+                setattr(self, 'id', str(uuid.uuid4()))
+            if not hasattr(kwargs, 'created_at'):
+                setattr(self, 'created_at', datetime.now())
+            if not hasattr(kwargs, 'updated_at'):
+                setattr(self, 'updated_at', datetime.now())
         else:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
